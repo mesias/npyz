@@ -292,7 +292,7 @@ pub use header::{DType, Field};
 #[allow(deprecated)]
 pub use read::{NpyData, NpyFile, NpyHeader, NpyReader, Order};
 #[allow(deprecated)]
-pub use write::{to_file, to_file_1d, OutFile, NpyWriter, write_options, WriteOptions, WriterBuilder};
+pub use write::{to_file, to_file_1d, to_buffer_1d, OutFile, NpyWriter, write_options, WriteOptions, WriterBuilder};
 pub use serialize::FixedSizeBytes;
 pub use serialize::{Serialize, Deserialize, AutoSerialize};
 pub use serialize::{TypeRead, TypeWrite, TypeWriteDyn, TypeReadDyn, DTypeError};

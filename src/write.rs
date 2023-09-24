@@ -361,6 +361,33 @@ impl<Row: Serialize> OutFile<Row> {
     }
 }
 
+pub type OutBuffer<Row, W> = NpyWriter<Row, BufWriter<W>>;
+
+impl<Row:AutoSerialize, W: Write + Seek> OutBuffer<Row, W> {
+    /// Opens a buffer with the given writer.
+    ///
+    /// This function takes a `BufWriter<W>` and returns a `Result` containing an instance of `Self`,
+    /// which is an `OutBuffer` struct specialized with the types `Row` and `W`.
+    ///
+    /// # Arguments
+    ///
+    /// * `writer` - The `BufWriter<W>` to open the buffer with.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing an instance of `Self` if the buffer was successfully opened, or an `io::Error`
+    /// if an error occurred during the process.
+    ///
+    pub fn open_buffer(writer: BufWriter<W>) -> io::Result<Self> {
+        WriteOptions::new()
+            .default_dtype()
+            .writer(writer)
+            .begin_1d()
+    }
+}
+
+
+
 impl<Row: Serialize + ?Sized , W: Write> NpyWriter<Row, W> {
     fn _begin(builder: DataFromBuilder<Row>, mut fw: MaybeSeek<W>) -> io::Result<Self> {
         let DataFromBuilder { dtype, order, shape, _marker } = builder;
@@ -568,6 +595,23 @@ where
         of.push(&row)?;
     }
     of.close()
+}
+
+/// Serialize an iterator over a struct to a NPY file.
+///
+/// This only saves a 1D array.  To save an ND array, **you must use the [`WriterBuilder`] API.**
+pub fn to_buffer_1d<S, T, H>(writer: BufWriter<H>, data: T) -> std::io::Result<()>
+where    
+    H: Write + Seek,
+    S: AutoSerialize,
+    T: IntoIterator<Item=S>,
+{
+    #![allow(deprecated)]
+    let mut of = OutBuffer::open_buffer(writer)?;
+    for row in data {
+        of.push(&row)?;
+    }
+    of.finish()
 }
 
 // module encapsulating the unsafety of MaybeSeek
